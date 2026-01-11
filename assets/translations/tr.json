@@ -99,6 +99,11 @@
     "total_orders": "Toplam Sipariş",
     "more_orders_for_gift": "sipariş sonra istediğin herhangi bir tatlı bizden!",
     "yes_delete": "Evet, Sil",
-    "delete_account_title": "Hesabı Sil"
-
+    "delete_account_title": "Hesabı Sil",
+    "no_account": "Hesabınız yok mu? ",
+    "have_account": "Zaten hesabınız var mı? ", 
+    "register_btn": "KAYIT OL",
+    "login_btn": "GİRİŞ YAP",
+    "or_label": "VEYA",
+    "reqired_field": " alanı zorunludur"
 }

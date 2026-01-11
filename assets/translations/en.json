@@ -99,5 +99,11 @@
   "total_orders": "Total Orders",
   "more_orders_for_gift": "orders to get any dessert of your choice on us!",
   "yes_delete": "Yes, Delete",
-  "delete_account_title": "Delete Account"
+  "delete_account_title": "Delete Account",
+  "no_account": "Don't have an account? ",
+  "have_account": "Already have an account? ",
+  "register_btn": "REGISTER",
+  "login_btn": "LOGIN",
+  "or_label": "OR",
+  "reqired_field": " field is required"
 }
