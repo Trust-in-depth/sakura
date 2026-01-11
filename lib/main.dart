@@ -8,6 +8,7 @@ import 'services/auth_service.dart';
 import 'providers/cart_provider.dart';
 import 'screens/home/home_screen.dart';
 import 'screens/auth/login_screen.dart';
+import 'providers/theme_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,38 +24,59 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => CartProvider()),
-        // Kullanıcı oturumunu dinleyen sağlayıcı
+        ChangeNotifierProvider(
+          create: (_) => ThemeProvider(),
+        ), // Ekli olduğunu onaylayın
         StreamProvider<User?>.value(
           value: AuthService().authStateChanges,
           initialData: null,
         ),
       ],
-      child: MaterialApp(
-        title: 'Sakura Restaurant',
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFB71C1C)),
-          useMaterial3: true,
-        ),
-        home: StreamBuilder<User?>(
-          stream: FirebaseAuth.instance.authStateChanges(),
-          builder: (context, snapshot) {
-            // 1. Durum: Bağlantı bekleniyor (Splash ekranı gibi düşünebilirsiniz)
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Scaffold(
-                body: Center(
-                  child: CircularProgressIndicator(color: Color(0xFFD81B60)),
-                ),
-              );
-            }
-            // 2. Durum: Kullanıcı verisi var (Giriş yapılmış) -> Anasayfa
-            if (snapshot.hasData) {
-              return const HomeScreen();
-            }
-            // 3. Durum: Kullanıcı yok (Giriş yapılmamış) -> Login
-            return const LoginScreen(); // Buraya kendi Login sayfanızın adını yazın
-          },
-        ),
+      // Consumer ekleyerek tema değişimini dinliyoruz
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, child) {
+          return MaterialApp(
+            title: 'Sakura Restaurant',
+            debugShowCheckedModeBanner: false,
+
+            // TEMA AYARLARI BURADA BAŞLIYOR
+            themeMode:
+                themeProvider.themeMode, // Provider'dan gelen mod (Light/Dark)
+
+            theme: ThemeData(
+              brightness: Brightness.light,
+              primaryColor: const Color(0xFFD81B60),
+              scaffoldBackgroundColor: Colors.white,
+              useMaterial3: true,
+              // Işık modu için diğer ayarlar
+            ),
+
+            darkTheme: ThemeData(
+              brightness: Brightness.dark,
+              primaryColor: const Color(0xFFD81B60),
+              scaffoldBackgroundColor: const Color(
+                0xFF121212,
+              ), // Koyu gri arka plan
+              useMaterial3: true,
+              // Karanlık mod için diğer ayarlar
+            ),
+
+            // TEMA AYARLARI BURADA BİTİYOR
+            home: StreamBuilder<User?>(
+              stream: FirebaseAuth.instance.authStateChanges(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Scaffold(
+                    body: Center(child: CircularProgressIndicator()),
+                  );
+                }
+                return snapshot.hasData
+                    ? const HomeScreen()
+                    : const LoginScreen();
+              },
+            ),
+          );
+        },
       ),
     );
   }

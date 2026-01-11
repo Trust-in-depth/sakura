@@ -5,6 +5,8 @@ import '../appointment/appointment_screen.dart';
 import '../profile/profile_screen.dart';
 import '../profile/user_info_screen.dart';
 import 'about_us_screen.dart';
+import '/providers/theme_provider.dart';
+import 'package:provider/provider.dart';
 
 class NavigationDrawerWidget extends StatelessWidget {
   const NavigationDrawerWidget({super.key});
@@ -73,6 +75,22 @@ class NavigationDrawerWidget extends StatelessWidget {
           // --- 2. MENÜ ELEMANLARI (LİSTE) ---
           // Artık pembe alanın dışındayız, Spacer burada çalışır.
           const SizedBox(height: 10),
+          ListTile(
+            leading: Icon(
+              context.watch<ThemeProvider>().isDarkMode
+                  ? Icons.dark_mode
+                  : Icons.light_mode,
+              color: const Color(0xFFD81B60),
+            ),
+            title: const Text("Karanlık Mod"),
+            trailing: Switch(
+              value: context.watch<ThemeProvider>().isDarkMode,
+              activeColor: const Color(0xFFD81B60),
+              onChanged: (value) {
+                context.read<ThemeProvider>().toggleTheme(value);
+              },
+            ),
+          ),
 
           ListTile(
             leading: const Icon(Icons.calendar_month, color: Color(0xFFD81B60)),
