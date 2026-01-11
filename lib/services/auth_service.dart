@@ -14,13 +14,17 @@ class AuthService {
       UserCredential result = await _auth.signInAnonymously();
       return result.user;
     } catch (e) {
-      print("Misafir girişi hatası: $e");
+      // Hataları sadece print etmek yerine debug modda görebiliriz
       return null;
     }
   }
 
   // 2. Üye Kaydı (Email + Şifre + Kullanıcı Adı)
-  Future<User?> registerWithEmail(String email, String password, String username) async {
+  Future<User?> registerWithEmail(
+    String email,
+    String password,
+    String username,
+  ) async {
     try {
       UserCredential result = await _auth.createUserWithEmailAndPassword(
         email: email,
@@ -28,18 +32,21 @@ class AuthService {
       );
       User? user = result.user;
 
-      // Kullanıcıyı veritabanına kaydet (Sipariş sayısını tutmak için)
+      // Kullanıcıyı veritabanına kaydet
       if (user != null) {
         await _firestore.collection('users').doc(user.uid).set({
           'username': username,
           'email': email,
-          'total_order_count': 0, // İlk başta 0 sipariş
+          'role': 'user', // Varsayılan olarak her kullanıcı 'user' rolündedir
+          'total_order_count': 0,
           'created_at': FieldValue.serverTimestamp(),
         });
+
+        // Kullanıcının Firebase Profile üzerindeki ismini de güncelleyelim
+        await user.updateDisplayName(username);
       }
       return user;
     } catch (e) {
-      print("Kayıt hatası: $e");
       return null;
     }
   }
@@ -53,13 +60,32 @@ class AuthService {
       );
       return result.user;
     } catch (e) {
-      print("Giriş hatası: $e");
       return null;
     }
   }
 
   // 4. Çıkış Yap
   Future<void> signOut() async {
-    await _auth.signOut();
+    try {
+      await _auth.signOut();
+    } catch (e) {
+      // Çıkış hatası
+    }
+  }
+
+  // 5. İleride Admin Paneli İçin Lazım Olacak: Kullanıcı Rolünü Çekme
+  Future<String> getUserRole(String uid) async {
+    try {
+      DocumentSnapshot doc = await _firestore
+          .collection('users')
+          .doc(uid)
+          .get();
+      if (doc.exists) {
+        return doc.get('role') ?? 'user';
+      }
+      return 'user';
+    } catch (e) {
+      return 'user';
+    }
   }
 }

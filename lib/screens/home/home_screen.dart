@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
+import 'package:easy_localization/easy_localization.dart'; // Çeviri için eklendi
 import '../../providers/cart_provider.dart';
-// Bir sonraki adımda detay sayfasını yapacağız, şimdilik placeholder duracak
 import '../menu/menu_screen.dart';
 import '../cart/cart_screen.dart';
 import 'navigation_drawer_widget.dart';
@@ -17,64 +16,59 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  // KATEGORİ LİSTESİ
-  // 'title': Ekranda görünecek isim
-  // 'subtitle': Japonca alt başlık
-  // 'dbValue': Firestore'da kayıtlı olan kategori ismi (Filtreleme için önemli!)
-  // 'image': Temsili görsel (Senin için Unsplash linkleri hazırladım)
+  // KATEGORİ LİSTESİ - Başlıklar artık JSON anahtarlarıyla eşleşiyor
   final List<Map<String, String>> categories = [
     {
-      'title': 'BAŞLANGIÇLAR',
+      'title': 'cat_appetizers', // JSON'daki anahtar: "BAŞLANGIÇLAR"
       'subtitle': 'Appetizers / 前菜 – Zensai',
-      'dbValue':
-          'Başlangıçlar(Zensai / 前菜)', // Veritabanındaki ismin aynısı olmalı
+      'dbValue': 'Başlangıçlar(Zensai / 前菜)',
       'image':
           'https://images.unsplash.com/photo-1625938146369-adc83368bda7?auto=format&fit=crop&q=80&w=400',
     },
     {
-      'title': 'ÇORBALAR',
+      'title': 'cat_soups', // JSON'daki anahtar: "ÇORBALAR"
       'subtitle': 'Soups / 汁物 – Shirumono',
       'dbValue': 'Çorbalar (Soups / 汁物)',
       'image':
           'https://images.unsplash.com/photo-1594756202469-9ff9799b2e4e?auto=format&fit=crop&q=80&w=500',
     },
     {
-      'title': 'SUSHI & SASHIMI',
+      'title': 'cat_sushi',
       'subtitle': '寿司・刺身',
       'dbValue': 'sushi/sashimi (寿司/刺身)',
       'image':
           'https://images.unsplash.com/photo-1579871494447-9811cf80d66c?auto=format&fit=crop&q=80&w=400',
     },
     {
-      'title': 'RAMEN & NOODLE',
+      'title': 'cat_ramen',
       'subtitle': '麺類 – Menrui',
       'dbValue': 'ramen/noodle (麺類/Menrui)',
       'image':
           'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&q=80&w=400',
     },
     {
-      'title': 'ANA YEMEKLER',
+      'title': 'cat_mains',
       'subtitle': 'Main Dishes / 主菜 – Shusai',
       'dbValue': 'ana yemekler (Main Dishes / 主菜)',
       'image':
           'https://images.unsplash.com/photo-1552611052-33e04de081de?auto=format&fit=crop&q=80&w=400',
     },
     {
-      'title': 'PİRİNÇ & BOWL',
+      'title': 'cat_rice',
       'subtitle': 'Rice Dishes / ご飯 – Gohan',
       'dbValue': 'pirinç/bowl (Rice Dishes / ご飯)',
       'image':
           'https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?auto=format&fit=crop&q=80&w=400',
     },
     {
-      'title': 'TATLILAR',
+      'title': 'cat_desserts',
       'subtitle': 'Desserts / 甘味 – Kanmi',
       'dbValue': 'tatlılar (Desserts / 甘味)',
       'image':
           'https://images.unsplash.com/photo-1563805042-7684c019e1cb?auto=format&fit=crop&q=80&w=500',
     },
     {
-      'title': 'İÇECEKLER',
+      'title': 'cat_drinks',
       'subtitle': 'Drinks / 飲み物 – Nomimono',
       'dbValue': 'içecekler (Drinks / 飲み物)',
       'image':
@@ -84,78 +78,69 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Tema uyumluluğu için renkler
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final themeColor = const Color(0xFFD81B60);
+
     return Scaffold(
       appBar: AppBar(
-        // 1. Profil ikonunu kaldırmak için leading'i boş bırakıyoruz veya false yapıyoruz
         automaticallyImplyLeading: false,
-
-        // 2. Başlığı sola yaslamak için centerTitle: false yapıyoruz
         centerTitle: false,
-
-        title: const Text(
-          "SAKURA",
+        title: Text(
+          "app_name".tr(), // "SAKURA" çevirisi
           style: TextStyle(
-            color: Color.fromARGB(255, 230, 78, 134), // Sizin pembe tonunuz
+            color: themeColor,
             fontWeight: FontWeight.bold,
             fontSize: 22,
           ),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: isDark ? Colors.transparent : Colors.white,
         elevation: 0,
-
-        // 3. Hamburger menüyü sağ tarafta tutmak için actions kullanıyoruz
         actions: [
           Builder(
             builder: (context) => IconButton(
-              icon: const Icon(Icons.menu, color: Colors.black, size: 30),
-              onPressed: () {
-                // Sağdan açılan menü (endDrawer) tetiklenir
-                Scaffold.of(context).openEndDrawer();
-              },
+              icon: Icon(
+                Icons.menu,
+                color: isDark ? Colors.white : Colors.black,
+                size: 30,
+              ),
+              onPressed: () => Scaffold.of(context).openEndDrawer(),
             ),
           ),
         ],
       ),
-
-      // Menü sağdan açılsın isterseniz endDrawer, soldan isterseniz drawer kullanın.
-      // Görselde sağda olduğu için endDrawer kullandım.
       endDrawer: const NavigationDrawerWidget(),
-      // --- 3. ANA İÇERİK (KATEGORİ KARTLARI) ---
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              "Kategoriler",
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            Text(
+              "categories".tr(), // "Kategoriler" çevirisi
+              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 10),
             Expanded(
               child: GridView.builder(
                 itemCount: categories.length,
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2, // Yan yana 2 kutu
-                  childAspectRatio: 0.8, // Kartların boyu eninden uzun olsun
-                  crossAxisSpacing: 15, // Yatay boşluk
-                  mainAxisSpacing: 15, // Dikey boşluk
+                  crossAxisCount: 2,
+                  childAspectRatio: 0.8,
+                  crossAxisSpacing: 15,
+                  mainAxisSpacing: 15,
                 ),
                 itemBuilder: (context, index) {
                   final cat = categories[index];
                   return GestureDetector(
                     onTap: () {
-                      // TIKLAMA OLAYI
-                      // Burada 'dbValue' değerini sonraki sayfaya göndereceğiz
-                      // Böylece sadece o kategoriye ait ürünleri çekeceğiz.
-                      // --- NAVİGASYON AKTİF ---
-                      // Tıklanan kategorinin başlığını ve veritabanı değerini
-                      // MenuScreen sayfasına gönderiyoruz.
                       Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => MenuScreen(
-                            categoryTitle: cat['title']!,
-                            categoryDbValue: cat['dbValue']!,
+                            categoryTitle: cat['title']!
+                                .tr(), // Başlığı çevirerek gönderiyoruz
+                            categoryDbValue:
+                                cat['dbValue']!, // Veritabanı değerini sabit gönderiyoruz
                           ),
                         ),
                       );
@@ -163,10 +148,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Container(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(20),
-                        color: Colors.white,
+                        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.grey.withOpacity(0.2),
+                            color: Colors.black.withOpacity(0.1),
                             blurRadius: 10,
                             offset: const Offset(0, 5),
                           ),
@@ -184,30 +169,6 @@ class _HomeScreenState extends State<HomeScreen> {
                               child: Image.network(
                                 cat['image']!,
                                 fit: BoxFit.cover,
-                                loadingBuilder: (ctx, child, loadingProgress) {
-                                  if (loadingProgress == null) return child;
-                                  return Center(
-                                    child: CircularProgressIndicator(
-                                      color: const Color(0xFFD81B60),
-                                      value:
-                                          loadingProgress.expectedTotalBytes !=
-                                              null
-                                          ? loadingProgress
-                                                    .cumulativeBytesLoaded /
-                                                loadingProgress
-                                                    .expectedTotalBytes!
-                                          : null,
-                                    ),
-                                  );
-                                },
-                                errorBuilder: (ctx, error, stackTrace) =>
-                                    const Center(
-                                      child: Icon(
-                                        Icons.fastfood,
-                                        size: 40,
-                                        color: Colors.grey,
-                                      ),
-                                    ),
                               ),
                             ),
                           ),
@@ -219,13 +180,12 @@ class _HomeScreenState extends State<HomeScreen> {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Text(
-                                    cat['title']!,
+                                    cat['title']!.tr(), // Kategori ismini çevir
                                     style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 14,
                                     ),
                                     textAlign: TextAlign.center,
-                                    maxLines: 1,
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
@@ -233,10 +193,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                     style: const TextStyle(
                                       fontSize: 10,
                                       color: Colors.grey,
-                                      fontStyle: FontStyle.italic,
                                     ),
                                     textAlign: TextAlign.center,
-                                    maxLines: 2,
                                   ),
                                 ],
                               ),
@@ -254,23 +212,19 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       floatingActionButton: Consumer<CartProvider>(
         builder: (context, cart, child) {
-          if (cart.items.isEmpty)
-            return const SizedBox.shrink(); // Boşsa gösterme
+          if (cart.items.isEmpty) return const SizedBox.shrink();
 
           return FloatingActionButton.extended(
-            backgroundColor: const Color(0xFFD81B60),
+            backgroundColor: themeColor,
             onPressed: () {
-              // Sepet Sayfasına Git
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => const CartScreen(),
-                ), // import etmeyi unutma!
+                MaterialPageRoute(builder: (context) => const CartScreen()),
               );
             },
             icon: const Icon(Icons.shopping_cart, color: Colors.white),
             label: Text(
-              "${cart.items.length} Ürün - ${cart.totalPrice}₺",
+              "${cart.items.length} ${"items".tr()} - ${cart.totalPrice}₺",
               style: const TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,

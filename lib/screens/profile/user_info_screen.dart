@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:easy_localization/easy_localization.dart'; // Çeviri paketi eklendi
 
 class UserInfoScreen extends StatefulWidget {
   const UserInfoScreen({super.key});
@@ -42,19 +43,21 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Bilgileriniz güncellendi! ✅"),
+          SnackBar(
+            content: Text(
+              "profile_updated_msg".tr(),
+            ), // "Bilgileriniz güncellendi! ✅"
             backgroundColor: Colors.green,
           ),
         );
-        // İsteğe bağlı: Güncelleme bitince sayfayı kapatabilir veya öylece bırakabilirsiniz.
-        // Navigator.pop(context);
       }
     } on FirebaseAuthException catch (e) {
-      String msg = "Hata oluştu.";
+      String msg = "error_occured".tr();
       if (e.code == 'requires-recent-login')
-        msg = "Şifre değiştirmek için lütfen çıkış yapıp tekrar girin.";
-      if (e.code == 'weak-password') msg = "Şifre çok zayıf.";
+        msg = "relogin_required_msg"
+            .tr(); // "Şifre değiştirmek için tekrar girin."
+      if (e.code == 'weak-password')
+        msg = "weak_password_msg".tr(); // "Şifre çok zayıf."
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -68,14 +71,19 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final themeColor = const Color(0xFFD81B60);
+    final textColor = isDark ? Colors.white : Colors.black;
+
     return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text(
-          "Profil Bilgilerim",
-          style: TextStyle(color: Colors.black),
+        title: Text(
+          "profile_details_title".tr(), // "Profil Bilgilerim"
+          style: TextStyle(color: textColor),
         ),
-        backgroundColor: Colors.white,
-        iconTheme: const IconThemeData(color: Colors.black),
+        backgroundColor: isDark ? Colors.transparent : Colors.white,
+        iconTheme: IconThemeData(color: textColor),
         elevation: 0,
       ),
       body: SingleChildScrollView(
@@ -87,7 +95,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
               // Profil Resmi
               CircleAvatar(
                 radius: 50,
-                backgroundColor: const Color(0xFFD81B60),
+                backgroundColor: themeColor,
                 child: Text(
                   (user?.displayName != null && user!.displayName!.isNotEmpty)
                       ? user!.displayName![0].toUpperCase()
@@ -101,15 +109,18 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
               ),
               const SizedBox(height: 30),
 
-              // E-posta (Okunur Sadece)
+              // E-posta (Sadece Okunur)
               TextFormField(
                 initialValue: user?.email,
                 readOnly: true,
+                style: TextStyle(
+                  color: isDark ? Colors.white70 : Colors.black87,
+                ),
                 decoration: InputDecoration(
-                  labelText: "E-posta",
+                  labelText: "email".tr(),
                   prefixIcon: const Icon(Icons.email_outlined),
                   filled: true,
-                  fillColor: Colors.grey[200],
+                  fillColor: isDark ? Colors.white10 : Colors.grey[200],
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                     borderSide: BorderSide.none,
@@ -121,28 +132,24 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
               // İsim Soyisim
               TextFormField(
                 controller: _nameController,
-                decoration: InputDecoration(
-                  labelText: "Ad Soyad",
-                  prefixIcon: const Icon(
-                    Icons.person_outline,
-                    color: Color(0xFFD81B60),
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
+                style: TextStyle(color: textColor),
+                decoration: _inputDecoration(
+                  "full_name".tr(),
+                  Icons.person_outline,
+                  themeColor,
                 ),
-                validator: (val) => val!.isEmpty ? "İsim boş olamaz" : null,
+                validator: (val) => val!.isEmpty ? "name_required".tr() : null,
               ),
 
               const SizedBox(height: 30),
               const Divider(),
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 10),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 10),
                 child: Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
-                    "Güvenlik",
-                    style: TextStyle(
+                    "security_section".tr(), // "Güvenlik"
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                       color: Colors.grey,
@@ -155,20 +162,15 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
               TextFormField(
                 controller: _passwordController,
                 obscureText: true,
-                decoration: InputDecoration(
-                  labelText: "Yeni Şifre (İsteğe Bağlı)",
-                  hintText: "Değiştirmek istemiyorsanız boş bırakın",
-                  prefixIcon: const Icon(
-                    Icons.lock_outline,
-                    color: Color(0xFFD81B60),
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
+                style: TextStyle(color: textColor),
+                decoration: _inputDecoration(
+                  "new_password_label".tr(),
+                  Icons.lock_outline,
+                  themeColor,
+                ).copyWith(hintText: "password_change_hint".tr()),
                 validator: (val) {
                   if (val != null && val.isNotEmpty && val.length < 6)
-                    return "En az 6 karakter olmalı";
+                    return "password_too_short".tr();
                   return null;
                 },
               ),
@@ -178,17 +180,16 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
               TextFormField(
                 controller: _confirmPasswordController,
                 obscureText: true,
-                decoration: InputDecoration(
-                  labelText: "Yeni Şifre Tekrar",
-                  prefixIcon: const Icon(Icons.lock, color: Color(0xFFD81B60)),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
+                style: TextStyle(color: textColor),
+                decoration: _inputDecoration(
+                  "confirm_password_label".tr(),
+                  Icons.lock,
+                  themeColor,
                 ),
                 validator: (val) {
                   if (_passwordController.text.isNotEmpty &&
                       val != _passwordController.text) {
-                    return "Şifreler uyuşmuyor";
+                    return "passwords_not_match".tr();
                   }
                   return null;
                 },
@@ -201,7 +202,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
                 height: 50,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFD81B60),
+                    backgroundColor: themeColor,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -209,9 +210,9 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
                   onPressed: isLoading ? null : _updateProfile,
                   child: isLoading
                       ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text(
-                          "KAYDET & GÜNCELLE",
-                          style: TextStyle(
+                      : Text(
+                          "save_update_btn".tr(), // "KAYDET & GÜNCELLE"
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -222,6 +223,22 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  InputDecoration _inputDecoration(
+    String label,
+    IconData icon,
+    Color themeColor,
+  ) {
+    return InputDecoration(
+      labelText: label,
+      prefixIcon: Icon(icon, color: themeColor),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+      focusedBorder: OutlineInputBorder(
+        borderSide: BorderSide(color: themeColor, width: 2),
+        borderRadius: BorderRadius.circular(10),
       ),
     );
   }

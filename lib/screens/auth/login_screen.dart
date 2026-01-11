@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
+import 'package:easy_localization/easy_localization.dart'; // Çeviri için eklendi
 import '../../services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -22,7 +23,6 @@ class _LoginScreenState extends State<LoginScreen>
   final List<SakuraPetal> _petals = [];
   final math.Random _random = math.Random();
 
-  // Tema Rengi (Butonlar için)
   final Color _themeColor = const Color(0xFFD81B60);
 
   @override
@@ -34,7 +34,6 @@ class _LoginScreenState extends State<LoginScreen>
     )..repeat();
 
     for (int i = 0; i < 25; i++) {
-      // Yaprak sayısını biraz arttırdık
       _petals.add(_generateRandomPetal());
     }
   }
@@ -49,7 +48,7 @@ class _LoginScreenState extends State<LoginScreen>
     return SakuraPetal(
       x: _random.nextDouble() * 400,
       y: -_random.nextDouble() * 200,
-      size: _random.nextDouble() * 15 + 10, // Boyutları biraz küçülttük
+      size: _random.nextDouble() * 15 + 10,
       speed: _random.nextDouble() * 2 + 0.5,
       rotation: _random.nextDouble() * 2 * math.pi,
       rotationSpeed: (_random.nextDouble() - 0.5) * 0.2,
@@ -59,37 +58,40 @@ class _LoginScreenState extends State<LoginScreen>
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    // Tema kontrolü
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      // Arka plan rengine gerek kalmadı, resim kaplayacak
       body: Stack(
         children: [
-          // KATMAN 1: Tam Ekran Arka Plan Görseli
+          // KATMAN 1: Arka Plan
           Positioned.fill(
             child: Image.asset(
-              'assets/images/Background.webp', // Tapınaklı görsel
-              fit: BoxFit.cover, // Ekranı doldur
+              'assets/images/Background.webp',
+              fit: BoxFit.cover,
             ),
           ),
 
-          // KATMAN 2: Karartma Filtresi (Okunabilirlik için)
+          // KATMAN 2: Karartma Filtresi
           Positioned.fill(
             child: Container(
-              color: Colors.black.withOpacity(0.4), // %40 siyah filtre
+              color: Colors.black.withOpacity(
+                isDark ? 0.6 : 0.4,
+              ), // Dark modda biraz daha koyu
             ),
           ),
 
-          // KATMAN 3: Giriş Formu (Merkezde)
+          // KATMAN 3: Giriş Formu
           Center(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24.0),
-              // Formun arkasına hafif beyaz bir kutu ekleyelim ki daha net olsun
               child: Container(
                 padding: const EdgeInsets.all(24.0),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(
-                    0.9,
-                  ), // Hafif şeffaf beyaz kutu
+                  // Kutu rengi temaya göre değişir
+                  color: isDark
+                      ? const Color(0xFF1E1E1E).withOpacity(0.95)
+                      : Colors.white.withOpacity(0.9),
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
@@ -100,14 +102,12 @@ class _LoginScreenState extends State<LoginScreen>
                   ],
                 ),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min, // İçerik kadar yer kapla
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Logo ve Başlık
                     Icon(Icons.ramen_dining, size: 80, color: _themeColor),
                     const SizedBox(height: 10),
                     Text(
-                      "SAKURA REST",
+                      "app_name_".tr(), // "SAKURA"
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
@@ -124,7 +124,7 @@ class _LoginScreenState extends State<LoginScreen>
                       child: OutlinedButton.icon(
                         icon: Icon(Icons.person_outline, color: _themeColor),
                         label: Text(
-                          "MİSAFİR OLARAK DEVAM ET",
+                          "guest_login".tr(), // "MİSAFİR OLARAK DEVAM ET"
                           style: TextStyle(color: _themeColor),
                         ),
                         style: OutlinedButton.styleFrom(
@@ -150,9 +150,9 @@ class _LoginScreenState extends State<LoginScreen>
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 10),
                           child: Text(
-                            "VEYA",
+                            "or_label".tr(),
                             style: TextStyle(color: _themeColor),
-                          ),
+                          ), // "VEYA"
                         ),
                         Expanded(
                           child: Divider(color: _themeColor.withOpacity(0.3)),
@@ -168,21 +168,24 @@ class _LoginScreenState extends State<LoginScreen>
                         children: [
                           if (!isLoginMode)
                             _buildInput(
-                              "Kullanıcı Adı",
+                              "username".tr(), // "Kullanıcı Adı"
                               Icons.person,
                               (val) => username = val,
+                              isDark,
                             ),
                           if (!isLoginMode) const SizedBox(height: 15),
                           _buildInput(
-                            "E-posta",
+                            "email".tr(), // "E-posta"
                             Icons.email,
                             (val) => email = val,
+                            isDark,
                           ),
                           const SizedBox(height: 15),
                           _buildInput(
-                            "Şifre",
+                            "password".tr(), // "Şifre"
                             Icons.lock,
                             (val) => password = val,
+                            isDark,
                             obscure: true,
                           ),
                           const SizedBox(height: 25),
@@ -195,52 +198,24 @@ class _LoginScreenState extends State<LoginScreen>
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: _themeColor,
                                 foregroundColor: Colors.white,
-                                elevation: 5,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                               ),
-                              onPressed: isLoading
-                                  ? null
-                                  : () async {
-                                      if (_formKey.currentState!.validate()) {
-                                        setState(() => isLoading = true);
-                                        dynamic result;
-                                        if (isLoginMode) {
-                                          result = await _auth.signInWithEmail(
-                                            email,
-                                            password,
-                                          );
-                                        } else {
-                                          result = await _auth
-                                              .registerWithEmail(
-                                                email,
-                                                password,
-                                                username,
-                                              );
-                                        }
-                                        if (result == null && mounted) {
-                                          setState(() => isLoading = false);
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            SnackBar(
-                                              content: const Text(
-                                                "Hata oluştu, bilgilerinizi kontrol ediniz.",
-                                              ),
-                                              backgroundColor: _themeColor,
-                                            ),
-                                          );
-                                        }
-                                      }
-                                    },
-                              child: Text(
-                                isLoginMode ? "GİRİŞ YAP" : "KAYIT OL",
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
+                              onPressed: isLoading ? null : _handleAuth,
+                              child: isLoading
+                                  ? const CircularProgressIndicator(
+                                      color: Colors.white,
+                                    )
+                                  : Text(
+                                      isLoginMode
+                                          ? "login_btn".tr()
+                                          : "register_btn".tr(),
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
                             ),
                           ),
                           TextButton(
@@ -248,8 +223,8 @@ class _LoginScreenState extends State<LoginScreen>
                                 setState(() => isLoginMode = !isLoginMode),
                             child: Text(
                               isLoginMode
-                                  ? "Hesabın yok mu? Kayıt Ol"
-                                  : "Zaten üye misin? Giriş Yap",
+                                  ? "no_account".tr()
+                                  : "have_account".tr(),
                               style: TextStyle(color: _themeColor),
                             ),
                           ),
@@ -262,71 +237,91 @@ class _LoginScreenState extends State<LoginScreen>
             ),
           ),
 
-          // KATMAN 4: Düşen Yapraklar Animasyonu (En Üstte)
-          AnimatedBuilder(
-            animation: _controller,
-            builder: (context, child) {
-              return Stack(
-                children: _petals.map((petal) {
-                  double currentY =
-                      (petal.y +
-                          _controller.value * size.height * petal.speed) %
-                      (size.height + 100);
-                  double currentRotation =
-                      petal.rotation +
-                      _controller.value * petal.rotationSpeed * 20;
-
-                  return Positioned(
-                    left: petal.x,
-                    top: currentY - 100,
-                    child: Transform.rotate(
-                      angle: currentRotation,
-                      child: Image.asset(
-                        'assets/images/sakura_petal.webp', // Tek yaprak görseli
-                        width: petal.size,
-                        height: petal.size,
-                        // Yapraklara hafif pembe/beyaz karışımı bir renk verelim
-                        color: Colors.white.withOpacity(0.8),
-                        colorBlendMode: BlendMode.modulate,
-                      ),
-                    ),
-                  );
-                }).toList(),
-              );
-            },
-          ),
+          // KATMAN 4: Animasyonlu Yapraklar
+          _buildSakuraAnimation(size),
         ],
       ),
     );
   }
 
+  // Yetkilendirme İşlemi
+  Future<void> _handleAuth() async {
+    if (_formKey.currentState!.validate()) {
+      setState(() => isLoading = true);
+      dynamic result;
+      if (isLoginMode) {
+        result = await _auth.signInWithEmail(email, password);
+      } else {
+        result = await _auth.registerWithEmail(email, password, username);
+      }
+      if (result == null && mounted) {
+        setState(() => isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("auth_error".tr()),
+            backgroundColor: _themeColor,
+          ),
+        );
+      }
+    }
+  }
+
   Widget _buildInput(
     String label,
     IconData icon,
-    Function(String) onChanged, {
+    Function(String) onChanged,
+    bool isDark, {
     bool obscure = false,
   }) {
     return TextFormField(
+      style: TextStyle(color: isDark ? Colors.white : Colors.black),
       decoration: InputDecoration(
         labelText: label,
         labelStyle: TextStyle(color: _themeColor.withOpacity(0.8)),
         prefixIcon: Icon(icon, color: _themeColor),
+        filled: true,
+        fillColor: isDark ? Colors.black26 : Colors.white,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         focusedBorder: OutlineInputBorder(
           borderSide: BorderSide(color: _themeColor, width: 2),
           borderRadius: BorderRadius.circular(12),
         ),
-        enabledBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: _themeColor.withOpacity(0.3)),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-        filled: true,
-        fillColor: Colors.white, // Inputların içi beyaz olsun
       ),
       obscureText: obscure,
       onChanged: onChanged,
-      validator: (val) => val!.isEmpty ? '$label gerekli' : null,
-      cursorColor: _themeColor,
+      validator: (val) =>
+          val!.isEmpty ? '$label ${"required_field".tr()}' : null,
+    );
+  }
+
+  Widget _buildSakuraAnimation(Size size) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return Stack(
+          children: _petals.map((petal) {
+            double currentY =
+                (petal.y + _controller.value * size.height * petal.speed) %
+                (size.height + 100);
+            return Positioned(
+              left: petal.x,
+              top: currentY - 100,
+              child: Transform.rotate(
+                angle:
+                    petal.rotation +
+                    _controller.value * petal.rotationSpeed * 20,
+                child: Image.asset(
+                  'assets/images/sakura_petal.webp',
+                  width: petal.size,
+                  height: petal.size,
+                  color: Colors.white.withOpacity(0.8),
+                  colorBlendMode: BlendMode.modulate,
+                ),
+              ),
+            );
+          }).toList(),
+        );
+      },
     );
   }
 }

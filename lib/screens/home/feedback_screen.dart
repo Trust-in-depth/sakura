@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class FeedbackScreen extends StatefulWidget {
   const FeedbackScreen({super.key});
@@ -17,7 +18,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
     if (_feedbackController.text.trim().isEmpty) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text("Lütfen bir mesaj yazın.")));
+      ).showSnackBar( SnackBar(content: Text("feedback_error".tr())));
       return;
     }
 
@@ -40,17 +41,15 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
         showDialog(
           context: context,
           builder: (ctx) => AlertDialog(
-            title: const Text("Teşekkürler! 🌸"),
-            content: const Text(
-              "Geri bildiriminiz başarıyla iletildi. İlginiz için teşekkür ederiz.",
-            ),
+            title:  Text("feedback_success_title".tr()),
+            content:  Text("feedback_success_msg".tr()),
             actions: [
               TextButton(
                 onPressed: () {
                   Navigator.pop(ctx);
                   Navigator.pop(context);
                 },
-                child: const Text("Tamam"),
+                child: Text("ok".tr()),
               ),
             ],
           ),
@@ -60,7 +59,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text("Hata oluştu: $e")));
+        ).showSnackBar(SnackBar(content: Text("error_occured".tr() + ": $e")));
       }
     } finally {
       if (mounted) setState(() => isLoading = false);
@@ -75,8 +74,8 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
       resizeToAvoidBottomInset:
           true, // Klavye açıldığında içeriği yeniden boyutlandır
       appBar: AppBar(
-        title: const Text(
-          "İstek ve Şikayetler",
+        title: Text(
+          "feedback_title".tr(),
           style: TextStyle(color: Colors.black),
         ),
         backgroundColor: Colors.white,
@@ -92,15 +91,14 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Text(
-                  "Görüşleriniz Bizim İçin Değerli",
+                 Text(
+                  "feedback_header".tr(),
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 10),
-                const Text(
-                  "Restoranımızla ilgili her türlü istek ve şikayetinizi buradan bize iletebilirsiniz.",
-                  textAlign: TextAlign.center,
+                Text(
+                  "feedback_info".tr(),
                   style: TextStyle(color: Colors.grey),
                 ),
                 const SizedBox(height: 30),
@@ -108,7 +106,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                   controller: _feedbackController,
                   maxLines: 5,
                   decoration: InputDecoration(
-                    hintText: "Mesajınızı buraya yazın...",
+                    hintText: "feedback_hint".tr(),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(15),
                     ),
@@ -130,8 +128,8 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                   ),
                   child: isLoading
                       ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text(
-                          "GÖNDER",
+                      :  Text(
+                          "send".tr(),
                           style: TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,

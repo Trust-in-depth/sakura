@@ -1,12 +1,13 @@
 // navigation_drawer_widget.dart
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
+import 'package:easy_localization/easy_localization.dart'; // Çeviri için
 import '../appointment/appointment_screen.dart';
 import '../profile/profile_screen.dart';
 import '../profile/user_info_screen.dart';
+import '../../providers/theme_provider.dart'; // Yolunuzu kontrol edin
 import 'about_us_screen.dart';
-import '/providers/theme_provider.dart';
-import 'package:provider/provider.dart';
 import 'feedback_screen.dart';
 
 class NavigationDrawerWidget extends StatelessWidget {
@@ -14,27 +15,27 @@ class NavigationDrawerWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // FirebaseAuth instansı
     final user = FirebaseAuth.instance.currentUser;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final themeColor = const Color(0xFFD81B60);
 
     return Drawer(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       child: Column(
         children: [
-          // --- 1. HEADER KISMI (PEMBE ALAN) ---
+          // --- 1. HEADER KISMI ---
           Container(
             width: double.infinity,
             padding: EdgeInsets.only(
               top: MediaQuery.of(context).padding.top + 20,
               bottom: 20,
             ),
-            color: const Color(0xFFD81B60), // Pembe Zemin
+            color: themeColor,
             child: Column(
               children: [
-                // NOODLE İKONU (Tıklanabilir - Profil Bilgilerine Gider)
                 GestureDetector(
                   onTap: () {
-                    Navigator.pop(context); // Drawer'ı kapat
-                    // Yeni oluşturduğumuz UserInfoScreen'e git
+                    Navigator.pop(context);
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -45,17 +46,16 @@ class NavigationDrawerWidget extends StatelessWidget {
                   child: CircleAvatar(
                     radius: 40,
                     backgroundColor: Colors.white,
-                    child: const Icon(
+                    child: Icon(
                       Icons.ramen_dining,
                       size: 45,
-                      color: Color(0xFFD81B60),
+                      color: themeColor,
                     ),
                   ),
                 ),
                 const SizedBox(height: 10),
-                // Kullanıcı ismini de buraya ekleyelim ki boş durmasın
                 Text(
-                  user?.displayName ?? "Misafir Kullanıcı",
+                  user?.displayName ?? "guest_user".tr(),
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 18,
@@ -63,39 +63,58 @@ class NavigationDrawerWidget extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 5),
-                const Text(
-                  "Bilgileri düzenlemek için ikona tıklayınız",
-                  style: TextStyle(color: Colors.white70, fontSize: 10),
+                Text(
+                  "edit_profile_hint".tr(),
+                  style: const TextStyle(color: Colors.white70, fontSize: 10),
                 ),
               ],
             ),
           ),
 
-          // DİKKAT: Container burada bitti! Parantezi kapattık.
-
-          // --- 2. MENÜ ELEMANLARI (LİSTE) ---
-          // Artık pembe alanın dışındayız, Spacer burada çalışır.
           const SizedBox(height: 10),
+
+          // --- 2. TEMA VE DİL AYARLARI ---
+
+          // Karanlık Mod Switch
           ListTile(
             leading: Icon(
               context.watch<ThemeProvider>().isDarkMode
                   ? Icons.dark_mode
                   : Icons.light_mode,
-              color: const Color(0xFFD81B60),
+              color: themeColor,
             ),
-            title: const Text("Karanlık Mod"),
+            title: Text("dark_mode".tr()),
             trailing: Switch(
               value: context.watch<ThemeProvider>().isDarkMode,
-              activeColor: const Color(0xFFD81B60),
-              onChanged: (value) {
-                context.read<ThemeProvider>().toggleTheme(value);
-              },
+              activeColor: themeColor,
+              onChanged: (value) =>
+                  context.read<ThemeProvider>().toggleTheme(value),
             ),
           ),
 
+          // Dil Değiştirme Seçeneği
           ListTile(
-            leading: const Icon(Icons.calendar_month, color: Color(0xFFD81B60)),
-            title: const Text("Randevu Alma"),
+            leading: Icon(Icons.language, color: themeColor),
+            title: Text("change_language".tr()),
+            trailing: Text(
+              context.locale.languageCode == 'tr' ? "EN" : "TR",
+              style: TextStyle(fontWeight: FontWeight.bold, color: themeColor),
+            ),
+            onTap: () {
+              if (context.locale.languageCode == 'tr') {
+                context.setLocale(const Locale('en'));
+              } else {
+                context.setLocale(const Locale('tr'));
+              }
+            },
+          ),
+
+          const Divider(),
+
+          // --- 3. MENÜ LİSTESİ ---
+          ListTile(
+            leading: Icon(Icons.calendar_month, color: themeColor),
+            title: Text("book_table".tr()),
             onTap: () {
               Navigator.pop(context);
               Navigator.push(
@@ -108,11 +127,8 @@ class NavigationDrawerWidget extends StatelessWidget {
           ),
 
           ListTile(
-            leading: const Icon(
-              Icons.receipt_long, // İkonu değiştirdim
-              color: Color(0xFFD81B60),
-            ),
-            title: const Text("Randevularım & Siparişlerim"),
+            leading: Icon(Icons.receipt_long, color: themeColor),
+            title: Text("my_orders_appointments".tr()),
             onTap: () {
               Navigator.pop(context);
               Navigator.push(
@@ -123,21 +139,19 @@ class NavigationDrawerWidget extends StatelessWidget {
           ),
 
           ListTile(
-            leading: const Icon(Icons.phone, color: Color(0xFFD81B60)),
-            title: const Text("İletişim Bilgileri"),
+            leading: Icon(Icons.phone, color: themeColor),
+            title: Text("contact_info".tr()),
             onTap: () {
               Navigator.pop(context);
               showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
-                  title: const Text("İletişim"),
-                  content: const Text(
-                    "Tel: +90 550 120 45 17\nAdres: Sakura Cad. No:1 Çankaya/Ankara",
-                  ),
+                  title: Text("contact_info".tr()),
+                  content: Text("contact_details".tr()),
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.pop(context),
-                      child: const Text("Tamam"),
+                      child: Text("ok".tr()),
                     ),
                   ],
                 ),
@@ -145,17 +159,15 @@ class NavigationDrawerWidget extends StatelessWidget {
             },
           ),
 
-          // Spacer, menünün geri kalanını en alta iter.
           const Spacer(),
-
           const Divider(),
 
+          // --- 4. ALT MENÜ (HAKKIMIZDA, GERİ BİLDİRİM, ÇIKIŞ) ---
           ListTile(
             leading: const Icon(Icons.info_outline, color: Colors.grey),
-            title: const Text("Hakkımızda"),
+            title: Text("about_us".tr()),
             onTap: () {
-              Navigator.pop(context); // Menüyü kapat
-              // Hakkımızda sayfasına git
+              Navigator.pop(context);
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const AboutUsScreen()),
@@ -168,9 +180,9 @@ class NavigationDrawerWidget extends StatelessWidget {
               Icons.message_outlined,
               color: Colors.blueAccent,
             ),
-            title: const Text("İstek ve Şikayetler"),
+            title: Text("feedback_title".tr()),
             onTap: () {
-              Navigator.pop(context); // Drawer'ı kapat
+              Navigator.pop(context);
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const FeedbackScreen()),
@@ -180,12 +192,12 @@ class NavigationDrawerWidget extends StatelessWidget {
 
           ListTile(
             leading: const Icon(Icons.exit_to_app, color: Colors.red),
-            title: const Text("Çıkış", style: TextStyle(color: Colors.red)),
+            title: Text(
+              "logout".tr(),
+              style: const TextStyle(color: Colors.red),
+            ),
             onTap: () async {
               await FirebaseAuth.instance.signOut();
-              // Çıkış yaptıktan sonra login sayfasına yönlendirme main.dart içinde
-              // StreamBuilder ile yapıldığı için manuel yönlendirmeye gerek kalmayabilir
-              // ama drawer'ı kapatmak iyi olur.
               if (context.mounted) Navigator.pop(context);
             },
           ),

@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
+import 'package:easy_localization/easy_localization.dart'; // Çeviri paketi eklendi
 import '../../models/food_item.dart';
 import '../../providers/cart_provider.dart';
 
 class MenuScreen extends StatefulWidget {
-  // Bu sayfa açılırken hangi kategoriyi göstereceğini bilmeli
-  final String categoryTitle; // Örn: "BAŞLANGIÇLAR" (Başlık için)
-  final String
-  categoryDbValue; // Örn: "Başlangıçlar(Zensai / 前菜)" (Veritabanı sorgusu için)
+  final String categoryTitle;
+  final String categoryDbValue;
 
   const MenuScreen({
     super.key,
@@ -24,76 +23,74 @@ class _MenuScreenState extends State<MenuScreen> {
   @override
   Widget build(BuildContext context) {
     final cartProvider = Provider.of<CartProvider>(context, listen: false);
-    final themeColor = const Color(0xFFD81B60); // Sakura rengimiz
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final themeColor = const Color(0xFFD81B60);
+    final textColor = isDark ? Colors.white : Colors.black;
 
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: isDark ? Colors.transparent : Colors.white,
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back_ios, color: themeColor),
-          onPressed: () => Navigator.pop(context), // Geri dön
+          onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          widget.categoryTitle,
+          widget
+              .categoryTitle, // Kategori başlığı zaten çevrilmiş olarak geliyor
           style: TextStyle(color: themeColor, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
       ),
-      // FİRESTORE BAĞLANTISI (StreamBuilder)
-      // Veritabanındaki değişiklikleri anlık olarak dinler
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
-            .collection('menu_items') // Hangi koleksiyon?
-            .where(
-              'category',
-              isEqualTo: widget.categoryDbValue,
-            ) // Hangi kategori?
-            .snapshots(), // Canlı yayın
+            .collection('menu_items')
+            .where('category', isEqualTo: widget.categoryDbValue)
+            .snapshots(),
         builder: (context, snapshot) {
-          // 1. Durum: Veri yükleniyor mu?
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator(color: themeColor));
           }
 
-          // 2. Durum: Hata var mı?
           if (snapshot.hasError) {
-            return const Center(
-              child: Text("Bir hata oluştu. Lütfen tekrar deneyin."),
+            return Center(
+              child: Text("error_occured_".tr()), // "Bir hata oluştu..."
             );
           }
 
-          // 3. Durum: Veri geldi ama boş mu? (O kategoride ürün yoksa)
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return const Center(
+            return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.restaurant_menu, size: 60, color: Colors.grey),
-                  SizedBox(height: 10),
+                  const Icon(
+                    Icons.restaurant_menu,
+                    size: 60,
+                    color: Colors.grey,
+                  ),
+                  const SizedBox(height: 10),
                   Text(
-                    "Bu kategoride henüz ürün yok.",
-                    style: TextStyle(color: Colors.grey),
+                    "no_products_in_category"
+                        .tr(), // "Bu kategoride henüz ürün yok."
+                    style: const TextStyle(color: Colors.grey),
                   ),
                 ],
               ),
             );
           }
 
-          // 4. Durum: Veriler başarıyla geldi! Listeyi oluşturalım.
           final menuDocs = snapshot.data!.docs;
 
           return ListView.builder(
             padding: const EdgeInsets.all(12),
             itemCount: menuDocs.length,
             itemBuilder: (context, index) {
-              // Firestore verisini bizim FoodItem modelimize çevir
               final foodData = menuDocs[index].data() as Map<String, dynamic>;
               final foodItem = FoodItem.fromMap(foodData, menuDocs[index].id);
 
-              // ÜRÜN KARTI TASARIMI
               return Card(
+                color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
                 margin: const EdgeInsets.only(bottom: 15),
                 elevation: 3,
                 shape: RoundedRectangleBorder(
@@ -104,7 +101,6 @@ class _MenuScreenState extends State<MenuScreen> {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // SOL: Ürün Resmi
                       ClipRRect(
                         borderRadius: BorderRadius.circular(10),
                         child: Image.network(
@@ -115,22 +111,22 @@ class _MenuScreenState extends State<MenuScreen> {
                           errorBuilder: (ctx, err, stack) => Container(
                             width: 90,
                             height: 90,
-                            color: Colors.grey[300],
+                            color: isDark ? Colors.black26 : Colors.grey[300],
                             child: const Icon(Icons.broken_image),
                           ),
                         ),
                       ),
                       const SizedBox(width: 15),
-                      // ORTA: Ürün Bilgileri
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               foodItem.name,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
+                                color: textColor,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -140,7 +136,9 @@ class _MenuScreenState extends State<MenuScreen> {
                               foodItem.description,
                               style: TextStyle(
                                 fontSize: 12,
-                                color: Colors.grey[600],
+                                color: isDark
+                                    ? Colors.grey[400]
+                                    : Colors.grey[600],
                               ),
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
@@ -157,19 +155,20 @@ class _MenuScreenState extends State<MenuScreen> {
                           ],
                         ),
                       ),
-                      // SAĞ: Sepete Ekle Butonu
                       Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           const SizedBox(height: 25),
                           ElevatedButton(
                             onPressed: () {
-                              // Sepete ekleme işlemi
                               cartProvider.addToCart(foodItem);
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
-                                    "${foodItem.name} sepete eklendi!",
+                                    "added_to_cart_msg".tr(
+                                      args: [foodItem.name],
+                                    ),
+                                    // Dinamik metin: "Suşi sepete eklendi!"
                                   ),
                                   backgroundColor: Colors.green,
                                   duration: const Duration(seconds: 1),

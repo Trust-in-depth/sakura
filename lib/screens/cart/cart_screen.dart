@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:easy_localization/easy_localization.dart'; // Çeviri için eklendi
 import '../../providers/cart_provider.dart';
 
 class CartScreen extends StatefulWidget {
@@ -40,14 +41,17 @@ class _CartScreenState extends State<CartScreen> {
   @override
   Widget build(BuildContext context) {
     final cart = Provider.of<CartProvider>(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final themeColor = const Color(0xFFD81B60);
+    final textColor = isDark ? Colors.white : Colors.black;
 
     return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text("Sepetim", style: TextStyle(color: Colors.black)),
-        backgroundColor: Colors.white,
+        title: Text("my_cart".tr(), style: TextStyle(color: textColor)),
+        backgroundColor: isDark ? Colors.transparent : Colors.white,
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black),
+        iconTheme: IconThemeData(color: textColor),
       ),
       body: cart.items.isEmpty
           ? Center(
@@ -57,12 +61,12 @@ class _CartScreenState extends State<CartScreen> {
                   Icon(
                     Icons.shopping_cart_outlined,
                     size: 80,
-                    color: Colors.grey[300],
+                    color: Colors.grey[400],
                   ),
                   const SizedBox(height: 20),
-                  const Text(
-                    "Sepetiniz henüz boş.",
-                    style: TextStyle(fontSize: 18, color: Colors.grey),
+                  Text(
+                    "cart_empty".tr(), // "Sepetiniz henüz boş."
+                    style: const TextStyle(fontSize: 18, color: Colors.grey),
                   ),
                 ],
               ),
@@ -76,6 +80,7 @@ class _CartScreenState extends State<CartScreen> {
                     itemBuilder: (context, index) {
                       final cartItem = cart.items[index];
                       return Card(
+                        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
                         margin: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 8,
@@ -94,7 +99,7 @@ class _CartScreenState extends State<CartScreen> {
                                   errorBuilder: (ctx, _, __) => Container(
                                     width: 60,
                                     height: 60,
-                                    color: Colors.grey[200],
+                                    color: Colors.grey[300],
                                   ),
                                 ),
                               ),
@@ -105,8 +110,9 @@ class _CartScreenState extends State<CartScreen> {
                                   children: [
                                     Text(
                                       cartItem.food.name,
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontWeight: FontWeight.bold,
+                                        color: textColor,
                                       ),
                                     ),
                                     Text(
@@ -123,26 +129,26 @@ class _CartScreenState extends State<CartScreen> {
                                   IconButton(
                                     icon: const Icon(
                                       Icons.remove_circle_outline,
+                                      color: Colors.grey,
                                     ),
-                                    onPressed: () {
-                                      cart.removeOrDecrease(cartItem.food);
-                                    },
+                                    onPressed: () =>
+                                        cart.removeOrDecrease(cartItem.food),
                                   ),
                                   Text(
                                     "${cartItem.quantity}",
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 16,
+                                      color: textColor,
                                     ),
                                   ),
                                   IconButton(
-                                    icon: const Icon(
+                                    icon: Icon(
                                       Icons.add_circle_outline,
-                                      color: Color(0xFFD81B60),
+                                      color: themeColor,
                                     ),
-                                    onPressed: () {
-                                      cart.addToCart(cartItem.food);
-                                    },
+                                    onPressed: () =>
+                                        cart.addToCart(cartItem.food),
                                   ),
                                 ],
                               ),
@@ -154,14 +160,14 @@ class _CartScreenState extends State<CartScreen> {
                   ),
                 ),
 
-                // 2. Alt Bilgi Alanı
+                // 2. Alt Bilgi Alanı (Masa No, Not, Toplam)
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: isDark ? const Color(0xFF121212) : Colors.white,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black12,
+                        color: Colors.black.withOpacity(0.1),
                         blurRadius: 10,
                         offset: const Offset(0, -5),
                       ),
@@ -169,61 +175,51 @@ class _CartScreenState extends State<CartScreen> {
                   ),
                   child: Column(
                     children: [
-                      // --- MASA NUMARASI ---
                       TextField(
                         controller: _tableController,
                         keyboardType: TextInputType.number,
+                        style: TextStyle(color: textColor),
                         decoration: InputDecoration(
-                          labelText: 'Masa Numarası',
-                          hintText: 'Örn: 5',
-                          prefixIcon: const Icon(
+                          labelText: 'table_no'.tr(), // "Masa Numarası"
+                          hintText: 'table_hint'.tr(), // "Örn: 5"
+                          prefixIcon: Icon(
                             Icons.table_restaurant,
-                            color: Color(0xFFD81B60),
+                            color: themeColor,
                           ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          filled: true,
-                          fillColor: Colors.grey[50],
                         ),
-                        onChanged: (value) {
-                          cart.setTableNumber(value);
-                        },
+                        onChanged: (value) => cart.setTableNumber(value),
                       ),
-
-                      const SizedBox(height: 10), // Boşluk
-                      // --- EKLENEN KISIM: SİPARİŞ NOTU ALANI ---
+                      const SizedBox(height: 10),
                       TextField(
                         controller: _noteController,
-                        keyboardType: TextInputType.text,
-                        maxLines: 2, // Biraz geniş olsun
+                        maxLines: 2,
+                        style: TextStyle(color: textColor),
                         decoration: InputDecoration(
-                          labelText: 'Müşteri Notu (İsteğe Bağlı)',
-                          hintText: 'Örn: Soğan olmasın, acı olsun...',
-                          prefixIcon: const Icon(
-                            Icons.note_alt_outlined, // Not ikonu
-                            color: Color(0xFFD81B60),
+                          labelText: 'order_note_label'.tr(), // "Müşteri Notu"
+                          hintText: 'order_note_hint'
+                              .tr(), // "Örn: Acı olsun..."
+                          prefixIcon: Icon(
+                            Icons.note_alt_outlined,
+                            color: themeColor,
                           ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          filled: true,
-                          fillColor: Colors.grey[50],
                         ),
                       ),
-
-                      // ------------------------------------------
                       const SizedBox(height: 20),
-
-                      // Toplam Tutar
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text(
-                            "Toplam Tutar:",
+                          Text(
+                            "total".tr() + ":",
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
+                              color: textColor,
                             ),
                           ),
                           Text(
@@ -236,10 +232,7 @@ class _CartScreenState extends State<CartScreen> {
                           ),
                         ],
                       ),
-
                       const SizedBox(height: 20),
-
-                      // Siparişi Onayla Butonu
                       SizedBox(
                         width: double.infinity,
                         height: 50,
@@ -257,9 +250,9 @@ class _CartScreenState extends State<CartScreen> {
                               ? const CircularProgressIndicator(
                                   color: Colors.white,
                                 )
-                              : const Text(
-                                  "SİPARİŞİ ONAYLA",
-                                  style: TextStyle(
+                              : Text(
+                                  "confirm_order".tr(), // "SİPARİŞİ ONAYLA"
+                                  style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
                                     color: Colors.white,
@@ -276,11 +269,10 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   Future<void> _submitOrder(BuildContext context, CartProvider cart) async {
-    // 1. KONTROL: Masa numarası girilmiş mi?
     if (_tableController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Lütfen masa numaranızı giriniz!"),
+        SnackBar(
+          content: Text("table_error".tr()),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
         ),
@@ -292,23 +284,24 @@ class _CartScreenState extends State<CartScreen> {
 
     try {
       final user = FirebaseAuth.instance.currentUser;
-
       final orderData = {
         'table_number': _tableController.text,
-        'order_note': _noteController.text, // --- EKLENEN KISIM: NOT VERİSİ ---
+        'order_note': _noteController.text,
         'user_id': user?.uid ?? "guest",
         'user_name': user?.displayName ?? "Misafir",
         'total_price': cart.totalPrice,
         'status': 'Hazırlanıyor',
         'created_at': FieldValue.serverTimestamp(),
-        'items': cart.items.map((item) {
-          return {
-            'name': item.food.name,
-            'price': item.food.price,
-            'quantity': item.quantity,
-            'id': item.food.id,
-          };
-        }).toList(),
+        'items': cart.items
+            .map(
+              (item) => {
+                'name': item.food.name,
+                'price': item.food.price,
+                'quantity': item.quantity,
+                'id': item.food.id,
+              },
+            )
+            .toList(),
       };
 
       await FirebaseFirestore.instance.collection('orders').add(orderData);
@@ -317,35 +310,33 @@ class _CartScreenState extends State<CartScreen> {
         setState(() => isLoading = false);
         cart.clearCart();
         _tableController.clear();
-        _noteController.clear(); // Not alanını da temizle
+        _noteController.clear();
 
-        // --- GÜNCELLENEN KISIM: İSTEDİĞİNİZ MESAJ ---
         showDialog(
           context: context,
           builder: (ctx) => AlertDialog(
-            title: const Text("Sipariş Alındı! 🍜"),
-            content: const Text(
-              "Talepleriniz doğrultusunda siparişiniz alındı. Afiyet olsun!",
-            ),
+            title: Text("order_success_title".tr()), // "Sipariş Alındı! 🍜"
+            content: Text(
+              "order_success_msg".tr(),
+            ), // "Talepleriniz doğrultusunda..."
             actions: [
               TextButton(
                 onPressed: () {
                   Navigator.pop(ctx);
                   Navigator.pop(context);
                 },
-                child: const Text("Tamam"),
+                child: Text("ok".tr()),
               ),
             ],
           ),
         );
-        // ----------------------------------------------
       }
     } catch (e) {
       if (mounted) {
         setState(() => isLoading = false);
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text("Hata: $e")));
+        ).showSnackBar(SnackBar(content: Text("error_occured".tr() + ": $e")));
       }
     }
   }
