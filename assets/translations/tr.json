@@ -90,5 +90,15 @@
   "password_too_short": "En az 6 karakter olmalı",
   "confirm_password_label": "Yeni Şifre Tekrar",
   "passwords_not_match": "Şifreler uyuşmuyor",
-  "save_update_btn": "KAYDET & GÜNCELLE"
+  "save_update_btn": "KAYDET & GÜNCELLE",
+  "edit_order_title": "Siparişi Düzenle",
+  "update_order_btn": "DEĞİŞİKLİKLERİ KAYDET",
+  "update_success_title": "Güncellendi!",
+  "update_success_msg": "Siparişiniz başarıyla güncellendi.",
+  "time_expired": "Üzgünüz, siparişten sonra 5 dakika geçtiği için değişiklik yapılamaz.",
+    "total_orders": "Toplam Sipariş",
+    "more_orders_for_gift": "sipariş sonra istediğin herhangi bir tatlı bizden!",
+    "yes_delete": "Evet, Sil",
+    "delete_account_title": "Hesabı Sil"
+
 }

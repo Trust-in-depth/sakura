@@ -90,6 +90,14 @@
   "password_too_short": "Must be at least 6 characters",
   "confirm_password_label": "Confirm New Password",
   "passwords_not_match": "Passwords do not match",
-  "save_update_btn": "SAVE & UPDATE"
-
+  "save_update_btn": "SAVE & UPDATE",
+  "edit_order_title": "Edit Order",
+  "update_order_btn": "SAVE CHANGES",
+  "update_success_title": "Updated!",
+  "update_success_msg": "Your order has been successfully updated.",
+  "time_expired": "Sorry, you cannot make changes as 5 minutes have passed since the order.",
+  "total_orders": "Total Orders",
+  "more_orders_for_gift": "orders to get any dessert of your choice on us!",
+  "yes_delete": "Yes, Delete",
+  "delete_account_title": "Delete Account"
 }

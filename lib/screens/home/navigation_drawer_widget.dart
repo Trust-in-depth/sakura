@@ -55,7 +55,9 @@ class NavigationDrawerWidget extends StatelessWidget {
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  user?.displayName ?? "guest_user".tr(),
+                  (user != null && user.displayName != null)
+                      ? user.displayName!
+                      : "guest_user".tr(),
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 18,
@@ -95,10 +97,13 @@ class NavigationDrawerWidget extends StatelessWidget {
           // Dil Değiştirme Seçeneği
           ListTile(
             leading: Icon(Icons.language, color: themeColor),
-            title: Text("change_language".tr()),
-            trailing: Text(
-              context.locale.languageCode == 'tr' ? "EN" : "TR",
-              style: TextStyle(fontWeight: FontWeight.bold, color: themeColor),
+            title: Text(
+              // Null-safe erişim ve varsayılan değer
+              (context.locale?.languageCode ?? 'tr') == 'tr' ? "EN" : "TR",
+              style: const TextStyle(
+                color: Color(0xFFD81B60),
+                fontWeight: FontWeight.bold,
+              ),
             ),
             onTap: () {
               if (context.locale.languageCode == 'tr') {

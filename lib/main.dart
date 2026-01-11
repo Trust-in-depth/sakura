@@ -10,15 +10,24 @@ import 'screens/home/home_screen.dart';
 import 'screens/auth/login_screen.dart';
 import 'providers/theme_provider.dart';
 import 'package:flutter/services.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await EasyLocalization.ensureInitialized();
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  runApp(const MyApp());
+  runApp(
+    EasyLocalization(
+      supportedLocales: const [Locale('tr'), Locale('en')],
+      path: 'assets/translations', // JSON dosyalarının olduğu klasör
+      fallbackLocale: const Locale('tr'),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -43,6 +52,10 @@ class MyApp extends StatelessWidget {
           return MaterialApp(
             title: 'Sakura Restaurant',
             debugShowCheckedModeBanner: false,
+
+            localizationsDelegates: context.localizationDelegates,
+            supportedLocales: context.supportedLocales,
+            locale: context.locale,
 
             // TEMA AYARLARI BURADA BAŞLIYOR
             themeMode:

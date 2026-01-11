@@ -109,7 +109,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      endDrawer: const NavigationDrawerWidget(),
+      endDrawer: NavigationDrawerWidget(),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
