@@ -72,6 +72,8 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
     const themeColor = Color(0xFFD81B60);
 
     return Scaffold(
+      resizeToAvoidBottomInset:
+          true, // Klavye açıldığında içeriği yeniden boyutlandır
       appBar: AppBar(
         title: const Text(
           "İstek ve Şikayetler",
@@ -81,58 +83,64 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
         iconTheme: const IconThemeData(color: Colors.black),
         elevation: 0,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Text(
-              "Görüşleriniz Bizim İçin Değerli",
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 10),
-            const Text(
-              "Restoranımızla ilgili her türlü istek ve şikayetinizi buradan bize iletebilirsiniz.",
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey),
-            ),
-            const SizedBox(height: 30),
-            TextField(
-              controller: _feedbackController,
-              maxLines: 5,
-              decoration: InputDecoration(
-                hintText: "Mesajınızı buraya yazın...",
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(15),
+      body: SafeArea(
+        // 1. SafeArea en dışta olur
+        child: SingleChildScrollView(
+          // 2. Klavye açıldığında kaydırmayı sağlar
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Text(
+                  "Görüşleriniz Bizim İçin Değerli",
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
                 ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: const BorderSide(color: themeColor, width: 2),
-                  borderRadius: BorderRadius.circular(15),
+                const SizedBox(height: 10),
+                const Text(
+                  "Restoranımızla ilgili her türlü istek ve şikayetinizi buradan bize iletebilirsiniz.",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.grey),
                 ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: isLoading ? null : _sendFeedback,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: themeColor,
-                padding: const EdgeInsets.symmetric(vertical: 15),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              child: isLoading
-                  ? const CircularProgressIndicator(color: Colors.white)
-                  : const Text(
-                      "GÖNDER",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
+                const SizedBox(height: 30),
+                TextField(
+                  controller: _feedbackController,
+                  maxLines: 5,
+                  decoration: InputDecoration(
+                    hintText: "Mesajınızı buraya yazın...",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(15),
                     ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(color: themeColor, width: 2),
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: isLoading ? null : _sendFeedback,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: themeColor,
+                    padding: const EdgeInsets.symmetric(vertical: 15),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: isLoading
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text(
+                          "GÖNDER",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
