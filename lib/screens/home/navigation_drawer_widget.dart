@@ -7,6 +7,7 @@ import '../profile/user_info_screen.dart';
 import 'about_us_screen.dart';
 import '/providers/theme_provider.dart';
 import 'package:provider/provider.dart';
+import 'feedback_screen.dart';
 
 class NavigationDrawerWidget extends StatelessWidget {
   const NavigationDrawerWidget({super.key});
@@ -158,6 +159,21 @@ class NavigationDrawerWidget extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const AboutUsScreen()),
+              );
+            },
+          ),
+
+          ListTile(
+            leading: const Icon(
+              Icons.message_outlined,
+              color: Colors.blueAccent,
+            ),
+            title: const Text("İstek ve Şikayetler"),
+            onTap: () {
+              Navigator.pop(context); // Drawer'ı kapat
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const FeedbackScreen()),
               );
             },
           ),
